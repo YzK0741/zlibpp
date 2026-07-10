@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/zlibpp-targets.cmake")
+
+# 查找依赖
+find_package(ZLIB REQUIRED)
+
+# 设置版本
+set_and_check(ZLIBPP_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check(ZLIBPP_LIBRARY_DIR "@PACKAGE_LIB_INSTALL_DIR@")
+
+check_required_components(zlibpp)
