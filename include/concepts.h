@@ -13,6 +13,13 @@ namespace zlibpp {
         typename T::element_type;
     } && (std::is_same_v<T, std::unique_ptr<typename T::element_type>> ||
            std::is_same_v<T, std::shared_ptr<typename T::element_type>>);
+
+    template <typename T>
+    concept has_data_and_size = requires(T t)
+    {
+        t.data();
+        t.size();
+    };
 }
 
 #endif //ZLIBPP_CONCEPTS_H

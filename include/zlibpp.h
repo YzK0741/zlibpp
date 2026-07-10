@@ -6,7 +6,7 @@
 #define ZLIBPP_ZLIBPP_H
 
 /**
- *@brief zlibpp is zlib's
+ *@brief zlibpp is zlib's modern cpp interface
  */
 
 
