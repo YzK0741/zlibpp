@@ -124,15 +124,16 @@ namespace zlibpp {
     [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
     uncompress(std::span<T> source, std::size_t expected_dest_size = 0) noexcept {
         if (!expected_dest_size) {
-            expected_dest_size = source.size_bytes() * 5;
+            expected_dest_size = source.size_bytes() * 12;
         }
         const auto dest_temp = std::make_unique<unsigned char[]>(expected_dest_size);
+
 
         if (auto uncompress_result = uncompress(source, std::span(dest_temp.get(), expected_dest_size));
             uncompress_result.has_value()) {
             auto dest = std::make_unique<unsigned char[]>(*uncompress_result);
             memcpy(dest.get(), dest_temp.get(), *uncompress_result);
-            return {dest};
+            return {std::move(dest)};
         } else {
             return std::unexpected(uncompress_result.error());
         }

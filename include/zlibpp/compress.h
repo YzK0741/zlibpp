@@ -138,40 +138,46 @@ namespace zlibpp {
     }
 
     template <typename T>
-    [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
-    compress(std::span<const T> source) noexcept {
+    [[nodiscard]] std::expected<std::pair<std::unique_ptr<unsigned char[]>, unsigned long>, err>
+    _compress(std::span<T> source) noexcept {
         const std::size_t expected_size = compress_bound(source.size_bytes());
         const auto result_temp = std::make_unique<unsigned char[]>(expected_size);
         if (auto compress_result = compress(source, std::span(result_temp.get(), expected_size));
             compress_result.has_value()) {
             auto result = std::make_unique<unsigned char[]>(compress_result.value());
             memcpy(result.get(), result_temp.get(), compress_result.value());
-            return {result};
+            return {std::pair(std::move(result), compress_result.value())};
         } else {
             return std::unexpected(compress_result.error());
         }
     }
 
+    template <typename T>
+    [[nodiscard]] std::expected<std::pair<std::unique_ptr<unsigned char[]>, unsigned long>, err>
+    compress(std::span<T> source) noexcept {
+        return _compress(source);
+    }
+
     template <has_data_and_size container>
-    [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
+    [[nodiscard]] std::expected<std::pair<std::unique_ptr<unsigned char[]>, unsigned long>, err>
     compress(container&& source) noexcept {
-        return compress(std::span{source.data(), source.size()});
+        return _compress(std::span{source.data(), source.size()});
     }
 
     template <typename T>
-    [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
+    [[nodiscard]] std::expected<std::pair<std::unique_ptr<unsigned char[]>, unsigned long>, err>
     compress(const T* source, std::size_t source_len) noexcept {
         return compress(std::span(source, source_len));
     }
 
     template <std_strong_smart_ptr source_ptr>
-    [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
+    [[nodiscard]] std::expected<std::pair<std::unique_ptr<unsigned char[]>, unsigned long>, err>
     compress(const source_ptr& source, std::size_t source_len) noexcept {
         return compress(source.get(), source_len);
     }
 
     template <typename T>
-    [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
+    [[nodiscard]] std::expected<std::pair<std::unique_ptr<unsigned char[]>, unsigned long>, err>
     compress(const std::weak_ptr<T>& source, std::size_t source_len) noexcept {
         return compress(source.lock(), source_len);
     }
