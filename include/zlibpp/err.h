@@ -2,8 +2,8 @@
 // Created by 小叶 on 2026/7/10.
 //
 
-#ifndef ZLIBPP_ERRNO_H
-#define ZLIBPP_ERRNO_H
+#ifndef ZLIBPP_ERR_H
+#define ZLIBPP_ERR_H
 
 #include <zlib.h>
 
@@ -60,4 +60,4 @@ namespace zlibpp {
 
 }
 
-#endif //ZLIBPP_ERRNO_H
+#endif //ZLIBPP_ERR_H

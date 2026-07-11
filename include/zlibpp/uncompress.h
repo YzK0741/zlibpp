@@ -26,7 +26,7 @@ namespace zlibpp {
         const uintptr_t source_end = source_start + source.size_bytes();
         const auto dest_start = reinterpret_cast<uintptr_t>(dest.data());
         const uintptr_t dest_end = dest_start + dest.size_bytes();
-
+        
         if (!(source_end < dest_start || dest_end < source_start)) {
             auto source_copy = std::make_unique<unsigned char[]>(source.size_bytes());
             memcpy(source_copy.get(), source.data(), source.size_bytes());

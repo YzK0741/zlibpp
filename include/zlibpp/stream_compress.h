@@ -11,6 +11,7 @@
 #include <cassert>
 #include "concepts.h"
 #include "err.h"
+#include "flush.h"
 
 namespace zlibpp {
     class compressor {
@@ -54,14 +55,14 @@ namespace zlibpp {
         }
 
         template <typename T>
-        std::expected<void, err> compress(std::span<T> source, const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> compress(std::span<T> source, const flush_mode flush = flush_mode::no_flush) noexcept {
             if (source.data() == nullptr || source.size_bytes() == 0) {
                 return std::unexpected(err::invalid_argument);
             }
 
             this->strm.next_in = reinterpret_cast<Bytef *>(source.data());
             this->strm.avail_in = static_cast<uInt>(source.size_bytes());
-            const int code = deflate(&this->strm, flush);
+            const int code = deflate(&this->strm, to_z_flush(flush));
             if (code == Z_OK || code == Z_STREAM_END) {
                 return {};
             }
@@ -69,17 +70,17 @@ namespace zlibpp {
         }
 
         template <typename T>
-        std::expected<void, err> compress(T* source, std::size_t source_size,const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> compress(T* source, std::size_t source_size, const flush_mode flush = flush_mode::no_flush) noexcept {
             return this->compress(std::span(source, source_size), flush);
         }
 
         template <std_strong_smart_ptr source_ptr>
-        std::expected<void, err> compress(source_ptr source, std::size_t source_size, const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> compress(source_ptr source, std::size_t source_size, const flush_mode flush = flush_mode::no_flush) noexcept {
             return this->compress(std::span(source.get(), source_size), flush);
         }
 
         template <typename T>
-        std::expected<void, err> compress(std::weak_ptr<T> source, std::size_t source_size, const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> compress(std::weak_ptr<T> source, std::size_t source_size, const flush_mode flush = flush_mode::no_flush) noexcept {
             return this->compress(std::span(source.lock(), source_size), flush);
         }
 

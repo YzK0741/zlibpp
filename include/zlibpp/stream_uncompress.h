@@ -11,15 +11,16 @@
 #include <cassert>
 #include "concepts.h"
 #include "err.h"
+#include "flush.h"
 
 namespace zlibpp {
     class uncompressor {
         z_stream strm = {};
         bool in_uncompress = false;
-
+    public:
         explicit uncompressor() noexcept {
             const int code = inflateInit(&this->strm);
-            assert(code == Z_OK && "deflateInit failed");
+            assert(code == Z_OK && "inflateInit failed");
         };
 
         template <typename T>
@@ -54,14 +55,14 @@ namespace zlibpp {
         }
 
         template <typename T>
-        std::expected<void, err> uncompress(std::span<T> source, const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> uncompress(std::span<T> source, const flush_mode flush = flush_mode::no_flush) noexcept {
             if (source.data() == nullptr || source.size_bytes() == 0) {
                 return std::unexpected(err::invalid_argument);
             }
 
             this->strm.next_in = reinterpret_cast<Bytef *>(source.data());
             this->strm.avail_in = static_cast<uInt>(source.size_bytes());
-            const int code = inflate(&this->strm, flush);
+            const int code = inflate(&this->strm, to_z_flush(flush));
             if (code == Z_OK || code == Z_STREAM_END) {
                 return {};
             }
@@ -69,22 +70,22 @@ namespace zlibpp {
         }
 
         template <typename T>
-        std::expected<void, err> uncompress(T* source, std::size_t source_size,const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> uncompress(T* source, std::size_t source_size, const flush_mode flush = flush_mode::no_flush) noexcept {
             return this->uncompress(std::span(source, source_size), flush);
         }
 
         template <std_strong_smart_ptr source_ptr>
-        std::expected<void, err> uncompress(source_ptr source, std::size_t source_size, const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> uncompress(source_ptr source, std::size_t source_size, const flush_mode flush = flush_mode::no_flush) noexcept {
             return this->uncompress(std::span(source.get(), source_size), flush);
         }
 
         template <typename T>
-        std::expected<void, err> uncompress(std::weak_ptr<T> source, std::size_t source_size, const int flush = Z_NO_FLUSH) noexcept {
+        std::expected<void, err> uncompress(std::weak_ptr<T> source, std::size_t source_size, const flush_mode flush = flush_mode::no_flush) noexcept {
             return this->uncompress(std::span(source.lock(), source_size), flush);
         }
 
         std::expected<void, err> end_uncompress() noexcept {
-            const int code = deflate(&strm, Z_FINISH);
+            const int code = inflate(&strm, Z_FINISH);
             this->in_uncompress = false;
             if (code == Z_OK || code == Z_STREAM_END) {
                 return {};
@@ -94,14 +95,14 @@ namespace zlibpp {
 
         std::expected<void, err> reset() noexcept {
             if (!this->in_uncompress) {
-                deflateReset(&this->strm);
+                inflateReset(&this->strm);
                 return {};
             }
             return std::unexpected(err::invalid_condition);
         }
 
         void force_reset() {
-            deflateReset(&this->strm);
+            inflateReset(&this->strm);
             this->in_uncompress = false;
         }
 
@@ -114,7 +115,7 @@ namespace zlibpp {
         }
 
         ~uncompressor() noexcept {
-            deflateEnd(&this->strm);
+            inflateEnd(&this->strm);
         };
     };
 }
