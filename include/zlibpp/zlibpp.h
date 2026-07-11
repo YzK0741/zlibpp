@@ -13,5 +13,6 @@
 
 #include "compress.h"
 #include "uncompress.h"
+#include "stream_compress.h"
 
 #endif //ZLIBPP_ZLIBPP_H

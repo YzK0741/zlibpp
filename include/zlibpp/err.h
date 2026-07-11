@@ -17,10 +17,12 @@ namespace zlibpp {
         data_error,
         version_error,
         need_dict,
+        invalid_argument,
+        invalid_condition,
         unknown_error,
     };
 
-    constexpr err to_err_enum(const int err) {
+    constexpr err to_err_enum(const int err) noexcept {
         switch (err) {
             case Z_OK: return err::ok;
             case Z_STREAM_END: return err::stream_end;
@@ -34,7 +36,7 @@ namespace zlibpp {
         }
     }
 
-    constexpr int from_err_enum(const err err) {
+    constexpr int from_err_enum(const err err) noexcept {
         switch (err) {
             case err::ok: return Z_OK;
             case err::stream_end: return Z_STREAM_END;
@@ -48,11 +50,11 @@ namespace zlibpp {
         }
     }
 
-    inline const char* get_description(const int err) {
+    inline const char* get_description(const int err) noexcept {
         return zError(err);
     }
 
-    inline const char* get_description(const err err) {
+    inline const char* get_description(const err err) noexcept {
         return get_description(from_err_enum(err));
     }
 

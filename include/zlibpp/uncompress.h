@@ -7,14 +7,19 @@
 #include <memory>
 #include <span>
 #include <zlib.h>
+#include <cstring>
 
 #include "concepts.h"
 #include "err.h"
 
 namespace zlibpp {
-    template <typename T>
+    template <typename SrcT, typename DesT>
     [[nodiscard]] std::expected<unsigned long, err>
-    uncompress(std::span<T> source, std::span<T> dest) {
+    uncompress(std::span<SrcT> source, std::span<DesT> dest) noexcept {
+        if (source.empty() || dest.empty()) {
+            return std::unexpected(err::data_error);
+        }
+
         unsigned long len = dest.size_bytes();
 
         const auto source_start = reinterpret_cast<uintptr_t>(source.data());
@@ -49,13 +54,13 @@ namespace zlibpp {
 
     template <has_data_and_size source_container, has_data_and_size dest_container>
     [[nodiscard]] std::expected<unsigned long, err>
-    uncompress (source_container&& source, dest_container&& dest) {
+    uncompress (source_container&& source, dest_container&& dest) noexcept {
         return uncompress(std::span{source}, std::span{dest});
     }
 
-    template <typename T>
+    template <typename SrcT, typename DesT>
     [[nodiscard]] std::expected<unsigned long, err>
-    uncompress(T* source, T* dest, std::size_t source_len, std::size_t dest_len = 0) {
+    uncompress(SrcT* source, DesT* dest, std::size_t source_len, std::size_t dest_len = 0) noexcept {
         if (source == nullptr  || source_len == 0) {
             return std::unexpected(err::data_error);
         }
@@ -78,7 +83,7 @@ namespace zlibpp {
         const dest_ptr& dest,
         std::size_t source_len,
         std::size_t dest_len = 0
-        ) {
+        ) noexcept {
         return uncompress(source.get(), dest.get(), source_len, dest_len);
     }
 
@@ -89,7 +94,7 @@ namespace zlibpp {
         const std::weak_ptr<T>& dest,
         std::size_t source_len,
         std::size_t dest_len = 0
-        ) {
+        ) noexcept {
         return uncompress(source, dest.lock(), source_len, dest_len);
     }
 
@@ -100,7 +105,7 @@ namespace zlibpp {
         const dest_ptr& dest,
         std::size_t source_len,
         std::size_t dest_len = 0
-        ) {
+        ) noexcept {
         return uncompress(source.lock(), dest, source_len, dest_len);
     }
 
@@ -111,13 +116,13 @@ namespace zlibpp {
         const std::weak_ptr<T2>& dest,
         std::size_t source_len,
         std::size_t dest_len = 0
-        ) {
+        ) noexcept {
         return uncompress(source.lock(), dest.lock(), source_len, dest_len);
     }
 
     template <typename T>
     [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
-    uncompress(std::span<T> source, std::size_t expected_dest_size = 0) {
+    uncompress(std::span<T> source, std::size_t expected_dest_size = 0) noexcept {
         if (!expected_dest_size) {
             expected_dest_size = source.size_bytes() * 5;
         }
@@ -135,25 +140,25 @@ namespace zlibpp {
 
     template <has_data_and_size container>
     [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
-    uncompress(container&& source, std::size_t expected_dest_size = 0) {
+    uncompress(container&& source, std::size_t expected_dest_size = 0) noexcept {
         return uncompress(std::span{source.data(), source.size()}, expected_dest_size);
     }
 
     template <typename T>
     [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
-    uncompress(T* source, std::size_t source_len, std::size_t expected_dest_size = 0) {
+    uncompress(T* source, std::size_t source_len, std::size_t expected_dest_size = 0) noexcept {
         return uncompress(std::span(source, source_len), expected_dest_size);
     }
 
     template <std_strong_smart_ptr source_ptr>
     [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
-    uncompress(const source_ptr& source, std::size_t source_len, std::size_t expected_dest_size = 0) {
+    uncompress(const source_ptr& source, std::size_t source_len, std::size_t expected_dest_size = 0) noexcept {
         return uncompress(source.get(), source_len, expected_dest_size);
     }
 
     template <typename T>
     [[nodiscard]] std::expected<std::unique_ptr<unsigned char[]>, err>
-    uncompress(const std::weak_ptr<T>& source, std::size_t source_len, std::size_t expected_dest_size = 0) {
+    uncompress(const std::weak_ptr<T>& source, std::size_t source_len, std::size_t expected_dest_size = 0) noexcept {
         return uncompress(source.lock(), source_len, expected_dest_size);
     }
 

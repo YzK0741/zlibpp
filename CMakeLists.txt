@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 project(zlibpp VERSION 1.0.0 LANGUAGES CXX)
 
 # 设置 C++ 标准
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 查找 zlib
 find_package(ZLIB REQUIRED)
@@ -17,6 +18,7 @@ target_include_directories(zlibpp INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
+include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
 
 # 链接 zlib
 target_link_libraries(zlibpp INTERFACE ZLIB::ZLIB)
@@ -73,8 +75,8 @@ install(
 set(CPACK_PACKAGE_NAME "zlibpp")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Modern C++ wrapper for zlib")
-set(CPACK_PACKAGE_VENDOR "Your Name")
-set(CPACK_PACKAGE_CONTACT "your.email@example.com")
+set(CPACK_PACKAGE_VENDOR "YzK0741")
+set(CPACK_PACKAGE_CONTACT "2353036486@qq.com")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
@@ -89,3 +91,7 @@ set(CPACK_SOURCE_IGNORE_FILES
 )
 
 include(CPack)
+
+add_executable(zlibpp_test test/main.cpp
+        include/zlibpp/stream_uncompress.h)
+target_link_libraries(zlibpp_test zlibpp)
